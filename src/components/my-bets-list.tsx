@@ -9,7 +9,6 @@ import { UserBetSplit, type UserBet } from "@/components/user-bet-split";
 import { MatchCardSkeleton } from "@/components/ui/skeleton";
 import { formatKickoffEat, formatKes } from "@/lib/events";
 import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
 
 type BetWithEvent = UserBet & {
   event_id: string;
@@ -41,30 +40,30 @@ function BetSummaryCard({ bet }: { bet: BetWithEvent }) {
   const showSplit = OPEN_STATUSES.includes(bet.status);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
-      <div className="flex flex-col gap-2 border-b border-border bg-muted/30 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
+    <div className="overflow-hidden rounded-lg border border-border bg-background">
+      <div className="flex items-start justify-between gap-3 border-b border-border bg-muted/30 px-3.5 py-2.5 sm:px-4 sm:py-3">
+        <div className="min-w-0 flex-1">
           <Link
             href={`/events/${bet.event_id}`}
-            className="font-semibold hover:text-primary"
+            className="text-sm font-semibold hover:text-primary sm:text-base"
           >
             {teamA} vs {teamB}
           </Link>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
             {sideName} · {formatKickoffEat(event.kickoff_time)} EAT
           </p>
         </div>
-        <div className="flex items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
+        <div className="shrink-0 text-right">
           <p className="text-sm font-semibold tabular-nums">
             {formatKes(Number(bet.stake_amount))}
           </p>
-          <span className="inline-flex rounded-md border border-border bg-card px-2 py-0.5 text-xs capitalize text-muted-foreground">
+          <span className="mt-0.5 inline-flex rounded-md border border-border bg-card px-2 py-0.5 text-[10px] capitalize text-muted-foreground sm:text-xs">
             {statusLabel(bet.status)}
           </span>
         </div>
       </div>
 
-      <div className="px-4 py-3">
+      <div className="px-3.5 py-2.5 sm:px-4 sm:py-3">
         {showSplit ? (
           <UserBetSplit bet={bet} teamAName={teamA} teamBName={teamB} />
         ) : (
@@ -102,34 +101,24 @@ function BetGroup({
   title,
   description,
   bets,
-  emptyMessage,
 }: {
   title: string;
   description: string;
   bets: BetWithEvent[];
-  emptyMessage: string;
 }) {
+  if (bets.length === 0) return null;
+
   return (
-    <section className="space-y-3">
-      <div className="border-b border-border/60 pb-3">
-        <h2 className="text-base font-semibold">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+    <section className="space-y-2">
+      <div className="pb-1">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
-      {bets.length === 0 ? (
-        <p
-          className={cn(
-            "rounded-lg border border-dashed border-border bg-muted/20 px-4 py-8 text-center text-sm text-muted-foreground"
-          )}
-        >
-          {emptyMessage}
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {bets.map((bet) => (
-            <BetSummaryCard key={bet.id} bet={bet} />
-          ))}
-        </div>
-      )}
+      <div className="space-y-2">
+        {bets.map((bet) => (
+          <BetSummaryCard key={bet.id} bet={bet} />
+        ))}
+      </div>
     </section>
   );
 }
@@ -195,6 +184,7 @@ export function MyBetsList() {
   if (!hasAny) {
     return (
       <EmptyState
+        compact
         icon={Receipt}
         title="No bets yet"
         description="Browse open matches and place your first stake before kickoff."
@@ -211,24 +201,21 @@ export function MyBetsList() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <BetGroup
         title="Open"
         description="Matching still in progress before kickoff."
         bets={openBets}
-        emptyMessage="No open bets."
       />
       <BetGroup
         title="Locked"
         description="Waiting for full time — matched stake is active."
         bets={lockedBets}
-        emptyMessage="No locked bets."
       />
       <BetGroup
         title="Settled"
         description="Completed outcomes — win, loss, or void."
         bets={settledBets}
-        emptyMessage="No settled bets yet."
       />
     </div>
   );

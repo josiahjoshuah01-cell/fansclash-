@@ -15,10 +15,12 @@ export function PlaceBetForm({
   event,
   balance,
   onBetPlaced,
+  embedded = false,
 }: {
   event: SportingEvent;
   balance: number;
   onBetPlaced: () => void;
+  embedded?: boolean;
 }) {
   const supabase = createClient();
   const [side, setSide] = useState<"team_a" | "team_b">("team_a");
@@ -74,87 +76,107 @@ export function PlaceBetForm({
     onBetPlaced();
   };
 
+  const form = (
+    <div className="space-y-3">
+      {embedded ? (
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-foreground">Place a bet</p>
+          <p className="text-xs tabular-nums text-muted-foreground">
+            Balance {formatKes(balance)}
+          </p>
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          variant={side === "team_a" ? "default" : "outline"}
+          className={cn("h-10 py-2 text-sm")}
+          onClick={() => setSide("team_a")}
+          disabled={loading}
+        >
+          {teamAName(event)}
+        </Button>
+        <Button
+          type="button"
+          variant={side === "team_b" ? "default" : "outline"}
+          className={cn("h-10 py-2 text-sm")}
+          onClick={() => setSide("team_b")}
+          disabled={loading}
+        >
+          {teamBName(event)}
+        </Button>
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="stake" className="text-sm font-medium">
+          Stake
+        </label>
+        <Input
+          id="stake"
+          type="number"
+          min={1}
+          step={1}
+          placeholder="100"
+          value={amount}
+          disabled={loading}
+          className="h-10"
+          onChange={(e) => setAmount(e.target.value)}
+        />
+      </div>
+
+      {!confirming ? (
+        <Button
+          className="h-10 w-full"
+          disabled={loading || !amount}
+          onClick={() => setConfirming(true)}
+        >
+          Review bet
+        </Button>
+      ) : (
+        <div className="space-y-2.5 rounded-lg border border-border bg-muted/20 p-3">
+          <p className="text-sm">
+            Confirm{" "}
+            <strong>{formatKes(parsedAmount)}</strong> on{" "}
+            <strong>{side === "team_a" ? teamAName(event) : teamBName(event)}</strong>
+            ?
+          </p>
+          <div className="flex gap-2">
+            <Button
+              className="h-10 flex-1"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "Placing…" : "Confirm bet"}
+            </Button>
+            <Button
+              variant="outline"
+              className="h-10 flex-1"
+              onClick={() => setConfirming(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <>
-      <Panel
-        title="Place a bet"
-        description={`Available balance: ${formatKes(balance)}. Your stake is matched pro-rata against the other side until kickoff.`}
-      >
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant={side === "team_a" ? "default" : "outline"}
-              className={cn("h-auto py-3")}
-              onClick={() => setSide("team_a")}
-              disabled={loading}
-            >
-              {teamAName(event)}
-            </Button>
-            <Button
-              type="button"
-              variant={side === "team_b" ? "default" : "outline"}
-              className={cn("h-auto py-3")}
-              onClick={() => setSide("team_b")}
-              disabled={loading}
-            >
-              {teamBName(event)}
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="stake" className="text-sm font-medium">
-              Stake (KES)
-            </label>
-            <Input
-              id="stake"
-              type="number"
-              min={1}
-              step={1}
-              placeholder="100"
-              value={amount}
-              disabled={loading}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </div>
-
-          {!confirming ? (
-            <Button
-              className="w-full"
-              disabled={loading || !amount}
-              onClick={() => setConfirming(true)}
-            >
-              Review bet
-            </Button>
-          ) : (
-            <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
-              <p className="text-sm">
-                Confirm{" "}
-                <strong>{formatKes(parsedAmount)}</strong> on{" "}
-                <strong>{side === "team_a" ? teamAName(event) : teamBName(event)}</strong>
-                ?
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  className="flex-1"
-                  onClick={handleSubmit}
-                  disabled={loading}
-                >
-                  {loading ? "Placing…" : "Confirm bet"}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setConfirming(false)}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </Panel>
+      {embedded ? (
+        form
+      ) : (
+        <Panel
+          compact
+          title="Place a bet"
+          description={`Balance ${formatKes(balance)}. Stakes match pro-rata until kickoff.`}
+          contentClassName="p-4 sm:px-5"
+        >
+          {form}
+        </Panel>
+      )}
 
       {toast ? <Toast type={toast.type} message={toast.message} /> : null}
     </>

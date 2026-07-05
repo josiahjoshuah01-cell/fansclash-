@@ -30,7 +30,7 @@ export function MobileNav({ showAdmin = false }: { showAdmin?: boolean }) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center gap-1 px-2 py-2.5 text-[10px] font-medium transition-colors",
+                "flex flex-col items-center gap-0.5 px-1.5 py-2 text-[10px] font-medium transition-colors",
                 active
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
@@ -39,7 +39,7 @@ export function MobileNav({ showAdmin = false }: { showAdmin?: boolean }) {
             >
               <span
                 className={cn(
-                  "flex size-9 items-center justify-center rounded-xl border transition-colors",
+                  "flex size-8 items-center justify-center rounded-xl border transition-colors sm:size-9",
                   active
                     ? "border-primary/20 bg-primary/10"
                     : "border-transparent bg-transparent"

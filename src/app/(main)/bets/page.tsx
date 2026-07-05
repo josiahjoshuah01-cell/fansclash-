@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 
 import { MyBetsList } from "@/components/my-bets-list";
 import { PageContent } from "@/components/layout/page-content";
-import { PageHeader } from "@/components/layout/page-header";
-import { Panel } from "@/components/layout/panel";
 
 export const metadata: Metadata = {
   title: "My Bets — FansClash",
@@ -12,19 +10,15 @@ export const metadata: Metadata = {
 
 export default function BetsPage() {
   return (
-    <PageContent>
-      <PageHeader
-        title="My bets"
-        description="Track open matching, locked stakes, and settled outcomes."
-      />
+    <PageContent className="mx-auto max-w-2xl space-y-3">
+      <div className="space-y-0.5">
+        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">My bets</h1>
+        <p className="text-sm text-muted-foreground">
+          Track open matching, locked stakes, and settled outcomes.
+        </p>
+      </div>
 
-      <Panel
-        title="Your activity"
-        description="Bets grouped by lifecycle — open, locked, and settled."
-        contentClassName="p-5 sm:p-6"
-      >
-        <MyBetsList />
-      </Panel>
+      <MyBetsList />
     </PageContent>
   );
 }

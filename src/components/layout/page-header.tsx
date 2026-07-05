@@ -18,6 +18,7 @@ export function PageHeader({
       className={cn(
         "border-b border-border",
         compact ? "pb-4" : "pb-6",
+        "max-md:border-b-0 max-md:pb-3",
         className
       )}
     >
@@ -40,7 +41,8 @@ export function PageHeader({
             <p
               className={cn(
                 "max-w-2xl text-muted-foreground",
-                compact ? "text-sm" : "text-sm sm:text-base"
+                compact ? "text-sm leading-snug" : "text-sm sm:text-base",
+              "max-md:text-[13px] max-md:leading-5"
               )}
             >
               {description}

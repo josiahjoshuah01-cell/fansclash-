@@ -21,24 +21,24 @@ export function StatTile({
     return (
       <div
         className={cn(
-          "rounded-xl border border-border bg-card px-3.5 py-2.5 shadow-sm",
+          "h-full rounded-xl border border-border bg-card px-3 py-2.5 shadow-sm max-md:py-2",
           className
         )}
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex h-full items-center gap-2 max-md:gap-1.5">
           <Icon
-            className="size-[18px] shrink-0 text-muted-foreground"
+            className="size-[18px] shrink-0 text-muted-foreground max-md:size-4"
             strokeWidth={1.75}
             aria-hidden
           />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-[11px] leading-tight text-muted-foreground">{label}</p>
-            <p className="truncate leading-tight">
-              <span className="text-base font-bold tabular-nums tracking-tight text-foreground">
+            <p className="leading-tight max-md:mt-0.5">
+              <span className="text-base font-bold tabular-nums tracking-tight text-foreground max-md:text-sm">
                 {value}
               </span>
               {hint ? (
-                <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">
+                <span className="mt-0.5 block text-[11px] font-normal leading-snug text-muted-foreground max-md:text-[10px] md:ml-1.5 md:mt-0 md:inline">
                   {hint}
                 </span>
               ) : null}

@@ -7,6 +7,8 @@ export function Panel({
   footer,
   className,
   contentClassName,
+  headerClassName,
+  footerClassName,
   compact = false,
 }: {
   title?: string;
@@ -15,6 +17,8 @@ export function Panel({
   footer?: React.ReactNode;
   className?: string;
   contentClassName?: string;
+  headerClassName?: string;
+  footerClassName?: string;
   compact?: boolean;
 }) {
   const hasHeader = Boolean(title || description);
@@ -30,7 +34,8 @@ export function Panel({
         <div
           className={cn(
             "border-b border-border bg-muted/40",
-            compact ? "px-4 py-3" : "px-5 py-4 sm:px-6"
+            compact ? "px-4 py-3" : "px-5 py-4 sm:px-6",
+            headerClassName
           )}
         >
           {title ? (
@@ -58,7 +63,7 @@ export function Panel({
 
       <div
         className={cn(
-          hasHeader && (compact ? "p-4" : "p-5 sm:p-6"),
+          hasHeader && (compact ? "p-4 max-md:px-0 max-md:pt-0" : "p-5 sm:p-6"),
           contentClassName
         )}
       >
@@ -66,7 +71,12 @@ export function Panel({
       </div>
 
       {footer ? (
-        <div className="border-t border-border bg-muted/30 px-5 py-3 text-xs text-muted-foreground sm:px-6">
+        <div
+          className={cn(
+            "border-t border-border bg-muted/30 px-5 py-3 text-xs text-muted-foreground sm:px-6",
+            footerClassName
+          )}
+        >
           {footer}
         </div>
       ) : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PoolSplitBar } from "@/components/pool-split-bar";
@@ -97,71 +98,54 @@ export function OpenMatchesList({ events }: { events: SportingEvent[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2 md:gap-3">
       {events.map((event) => {
         const pool = pools[event.id] ?? { teamA: 0, teamB: 0 };
         const totalPool = pool.teamA + pool.teamB;
         const loading = loadingPools && !(event.id in pools);
 
         return (
-          <Link key={event.id} href={`/events/${event.id}`} className="group block">
-            <Card className="overflow-hidden px-[18px] py-3 transition-all duration-200 hover:border-primary/50 hover:shadow-md">
+          <Link key={event.id} href={`/events/${event.id}`} className="group block w-full">
+            <Card className="w-full overflow-hidden border-border/70 px-3.5 py-3 transition-colors duration-200 active:bg-muted/30 max-md:rounded-lg max-md:shadow-none sm:px-4 md:px-[18px] md:py-3 md:hover:border-primary/50 md:hover:shadow-md">
               {loading ? (
-                <div className="flex items-center gap-4">
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <Skeleton className="h-4 w-4/5" />
-                    <div className="space-y-1">
-                      <div className="flex justify-between gap-2">
-                        <Skeleton className="h-3 w-24" />
-                        <Skeleton className="h-3 w-24" />
-                      </div>
-                      <Skeleton className="h-[5px] w-full rounded-full" />
-                    </div>
-                  </div>
-                  <div className="shrink-0 space-y-1 text-right">
-                    <Skeleton className="ml-auto h-3 w-14" />
-                    <Skeleton className="ml-auto h-4 w-16" />
-                  </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="h-3 w-3/5" />
+                  <Skeleton className="h-[5px] w-full rounded-full" />
                 </div>
               ) : (
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 leading-snug">
-                      <span className="text-[15px] font-normal text-foreground">
-                        {teamAName(event)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">vs</span>
-                      <span className="text-[15px] font-normal text-foreground">
-                        {teamBName(event)}
-                      </span>
-                      <span className="text-xs text-muted-foreground" aria-hidden>
-                        ·
-                      </span>
-                      <span className="text-xs text-muted-foreground">
+                <div className="flex items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium leading-snug text-foreground sm:text-[15px]">
+                      <span className="break-words">{teamAName(event)}</span>
+                      <span className="font-normal text-muted-foreground"> vs </span>
+                      <span className="break-words">{teamBName(event)}</span>
+                    </p>
+
+                    <div className="mt-1.5 flex items-center justify-between gap-2">
+                      <p className="min-w-0 truncate text-[11px] text-muted-foreground sm:text-xs">
                         {formatKickoffEat(event.kickoff_time)} EAT
-                      </span>
+                      </p>
+                      <p className="shrink-0 text-[11px] font-semibold tabular-nums text-foreground sm:text-xs">
+                        {formatKes(totalPool)}
+                      </p>
                     </div>
 
-                    <PoolSplitBar
-                      compact
-                      teamAName={teamAName(event)}
-                      teamBName={teamBName(event)}
-                      teamA={pool.teamA}
-                      teamB={pool.teamB}
-                    />
+                    <div className="mt-2.5">
+                      <PoolSplitBar
+                        compact
+                        teamAName={teamAName(event)}
+                        teamBName={teamBName(event)}
+                        teamA={pool.teamA}
+                        teamB={pool.teamB}
+                      />
+                    </div>
                   </div>
 
-                  <div className="shrink-0 text-right">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                      Total pool
-                    </p>
-                    <p className="text-sm font-bold tabular-nums leading-tight text-foreground">
-                      {formatKes(totalPool)}
-                    </p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                      View →
-                    </p>
-                  </div>
+                  <ChevronRight
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground/70 transition-transform group-active:translate-x-0.5 md:hidden"
+                    aria-hidden
+                  />
                 </div>
               )}
             </Card>

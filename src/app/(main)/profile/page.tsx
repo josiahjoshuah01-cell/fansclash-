@@ -2,12 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageContent } from "@/components/layout/page-content";
-import { PageHeader } from "@/components/layout/page-header";
 import { Panel } from "@/components/layout/panel";
 import { SignOutButton } from "@/components/sign-out-button";
 import { formatVerifiedMsisdn } from "@/lib/phone-display";
 import { createClient } from "@/lib/supabase/server";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Profile — FansClash",
@@ -34,7 +32,7 @@ function formatDateOfBirth(date: string): string {
 function KycBadge({ status }: { status: string }) {
   if (status === "verified") {
     return (
-      <span className="inline-flex rounded-full border border-success/20 bg-success/10 px-3 py-1 text-xs font-medium text-success">
+      <span className="inline-flex rounded-full border border-success/20 bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
         Verified
       </span>
     );
@@ -42,7 +40,7 @@ function KycBadge({ status }: { status: string }) {
 
   if (status === "pending") {
     return (
-      <span className="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+      <span className="inline-flex rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
         Verification pending
       </span>
     );
@@ -50,14 +48,14 @@ function KycBadge({ status }: { status: string }) {
 
   if (status === "rejected") {
     return (
-      <span className="inline-flex rounded-full border border-warning/20 bg-warning/10 px-3 py-1 text-xs font-medium text-warning">
+      <span className="inline-flex rounded-full border border-warning/20 bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
         Verification rejected
       </span>
     );
   }
 
   return (
-    <span className="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+    <span className="inline-flex rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
       Not verified
     </span>
   );
@@ -71,9 +69,9 @@ function ProfileRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
+    <div className="flex items-center justify-between gap-3 px-4 py-2.5">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <div className="text-right font-medium">{children}</div>
+      <div className="min-w-0 text-right text-sm font-medium">{children}</div>
     </div>
   );
 }
@@ -100,18 +98,23 @@ export default async function ProfilePage() {
   const email = user?.email ?? "—";
 
   return (
-    <PageContent width="narrow">
-      <PageHeader
-        title="Profile"
-        description="Your account details and verification status."
-      />
+    <PageContent className="mx-auto max-w-2xl space-y-3">
+      <div className="space-y-0.5">
+        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Profile</h1>
+        <p className="text-sm text-muted-foreground">
+          Your account details and verification status.
+        </p>
+      </div>
 
       <Panel
+        compact
         title="Account"
-        description="Identity details used for M-Pesa and compliance. Your verified M-Pesa number is set by your first successful deposit and cannot be changed here."
+        description="M-Pesa number is set by your first successful deposit."
         contentClassName="divide-y divide-border p-0"
       >
-        <ProfileRow label="Email">{email}</ProfileRow>
+        <ProfileRow label="Email">
+          <span className="truncate">{email}</span>
+        </ProfileRow>
         <ProfileRow label="Phone">
           <span className="text-muted-foreground">{phone}</span>
         </ProfileRow>
@@ -122,24 +125,25 @@ export default async function ProfilePage() {
           {memberSince ? formatMemberSince(memberSince) : "—"}
         </ProfileRow>
         <ProfileRow label="KYC status">
-          <span className={cn("inline-block")}>
-            <KycBadge status={kycStatus} />
-          </span>
+          <KycBadge status={kycStatus} />
         </ProfileRow>
         {isAdmin ? (
           <ProfileRow label="Role">
             <Link
               href="/admin"
-              className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
+              className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
             >
               Admin dashboard →
             </Link>
           </ProfileRow>
         ) : null}
-      </Panel>
 
-      <Panel title="Session" description="Sign out on shared or public devices.">
-        <SignOutButton className="w-full sm:w-auto" />
+        <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted-foreground">
+            Sign out on shared or public devices.
+          </p>
+          <SignOutButton className="w-full shrink-0 sm:w-auto" size="sm" />
+        </div>
       </Panel>
     </PageContent>
   );

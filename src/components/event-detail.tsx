@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { BackLink } from "@/components/layout/back-link";
 import { PageContent } from "@/components/layout/page-content";
-import { PageHeader } from "@/components/layout/page-header";
 import { Panel } from "@/components/layout/panel";
 import { PlaceBetForm } from "@/components/place-bet-form";
 import { PoolSplitBar } from "@/components/pool-split-bar";
@@ -115,86 +114,84 @@ export function EventDetail({
   const totalPool = pool.teamA + pool.teamB;
 
   return (
-    <PageContent>
-      <BackLink href="/matches" label="Back to matches" />
-
-      <PageHeader
-        title={`${teamAName(event)} vs ${teamBName(event)}`}
-        description={`Kickoff ${formatKickoffEat(event.kickoff_time)} EAT`}
+    <PageContent className="mx-auto max-w-2xl space-y-3">
+      <BackLink
+        href="/matches"
+        label="Back to matches"
+        className="text-xs max-md:mb-0"
       />
 
-      <Panel
-        title="Market pool"
-        description="Live fan stakes on each side before kickoff."
-        footer={
-          <span>
-            Total pool{" "}
-            <span className="font-medium tabular-nums text-foreground">
-              {formatKes(totalPool)}
-            </span>
-          </span>
-        }
-      >
-        {loadingPool ? (
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-3 w-20" />
-            </div>
-            <Skeleton className="h-3 w-full rounded-full" />
-            <div className="flex justify-between">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-4 w-16" />
-            </div>
-          </div>
-        ) : (
-          <PoolSplitBar
-            teamAName={teamAName(event)}
-            teamBName={teamBName(event)}
-            teamA={pool.teamA}
-            teamB={pool.teamB}
-          />
-        )}
-      </Panel>
+      <div className="space-y-0.5">
+        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+          {teamAName(event)} vs {teamBName(event)}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Kickoff {formatKickoffEat(event.kickoff_time)} EAT
+        </p>
+      </div>
 
-      {loadingBets ? (
-        <Panel title="Your bets" contentClassName="p-5 sm:p-6">
-          <Skeleton className="h-24 w-full rounded-lg" />
-        </Panel>
-      ) : userBets.length > 0 ? (
-        <Panel
-          title="Your bets"
-          description="Open stakes still matching before kickoff."
-          contentClassName="space-y-3 p-5 sm:p-6"
-        >
-          {userBets.map((bet) => (
-            <div
-              key={bet.id}
-              className="rounded-lg border border-border bg-muted/20 p-4"
-            >
+      <Panel compact contentClassName="space-y-4 p-4 sm:px-5 sm:py-4">
+        <div>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-foreground">Market pool</p>
+            <p className="text-xs text-muted-foreground">
+              Total{" "}
+              <span className="font-medium tabular-nums text-foreground">
+                {formatKes(totalPool)}
+              </span>
+            </p>
+          </div>
+
+          {loadingPool ? (
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-full rounded-full" />
+              <div className="flex justify-between">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+          ) : (
+            <PoolSplitBar
+              compact
+              teamAName={teamAName(event)}
+              teamBName={teamBName(event)}
+              teamA={pool.teamA}
+              teamB={pool.teamB}
+            />
+          )}
+        </div>
+
+        {loadingBets ? (
+          <Skeleton className="h-16 w-full rounded-lg" />
+        ) : userBets.length > 0 ? (
+          <div className="space-y-2 border-t border-border pt-4">
+            <p className="text-sm font-semibold text-foreground">Your bets</p>
+            {userBets.map((bet) => (
               <UserBetSplit
+                key={bet.id}
                 bet={bet}
                 teamAName={teamAName(event)}
                 teamBName={teamBName(event)}
               />
-            </div>
-          ))}
-        </Panel>
-      ) : null}
+            ))}
+          </div>
+        ) : null}
 
-      {isOpen ? (
-        <PlaceBetForm
-          event={event}
-          balance={balance}
-          onBetPlaced={refreshAll}
-        />
-      ) : (
-        <Panel contentClassName="p-5 sm:p-6">
-          <p className="text-sm text-muted-foreground">
+        {isOpen ? (
+          <div className="border-t border-border pt-4">
+            <PlaceBetForm
+              embedded
+              event={event}
+              balance={balance}
+              onBetPlaced={refreshAll}
+            />
+          </div>
+        ) : (
+          <p className="border-t border-border pt-4 text-sm text-muted-foreground">
             This event is no longer open for betting.
           </p>
-        </Panel>
-      )}
+        )}
+      </Panel>
     </PageContent>
   );
 }

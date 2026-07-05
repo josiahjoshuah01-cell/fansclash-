@@ -16,7 +16,13 @@ function formatKes(amount: number) {
   }).format(amount);
 }
 
-export function WalletBadge({ className }: { className?: string }) {
+export function WalletBadge({
+  className,
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +51,7 @@ export function WalletBadge({ className }: { className?: string }) {
       href="/wallet"
       className={cn(
         "inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium tabular-nums shadow-sm transition-colors hover:bg-muted/60",
+        compact && "gap-1 px-2 py-1 text-xs",
         className
       )}
       aria-label="Wallet balance"

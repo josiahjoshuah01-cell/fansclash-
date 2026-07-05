@@ -88,21 +88,23 @@ export default function WalletPage() {
             description="Funds are held in KES until matched or settled."
           >
             {loadingBalance ? (
-              <Skeleton className="h-8 w-40" />
+              <Skeleton className="h-7 w-36 max-md:h-6" />
             ) : (
-              <p className="text-[28px] font-bold leading-none tabular-nums tracking-tight">
+              <p className="text-2xl font-bold leading-none tabular-nums tracking-tight max-md:text-[22px] sm:text-[28px]">
                 {formatKes(Number(balance ?? 0))}
               </p>
             )}
             <Button
-              className="mt-4 w-full"
+              size="sm"
+              className="mt-3 w-fit max-md:h-8 max-md:px-4 max-md:text-xs sm:mt-4 sm:w-full"
               onClick={() => setShowDeposit((open) => !open)}
             >
               {showDeposit ? "Hide deposit form" : "Add funds"}
             </Button>
 
             <Button
-              className="mt-2 w-full"
+              size="sm"
+              className="mt-1.5 w-full max-md:h-8 max-md:text-xs sm:mt-2"
               variant="outline"
               disabled={!withdrawalsEnabled}
               onClick={() => {

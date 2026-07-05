@@ -20,14 +20,14 @@ export async function TopNav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/75">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:gap-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-6">
           <Link
             href="/matches"
             className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
           >
             <LogoMark />
-            <span className="truncate text-lg font-bold tracking-tight">
+            <span className="truncate text-base font-bold tracking-tight sm:text-lg">
               FansClash
             </span>
           </Link>
@@ -37,7 +37,7 @@ export async function TopNav() {
         <div className="flex items-center gap-1 sm:gap-2">
           {user ? (
             <>
-              <WalletBadge className="hidden sm:inline-flex" />
+              <WalletBadge className="max-sm:gap-1 max-sm:px-2 max-sm:py-1 max-sm:text-xs [&_svg]:max-sm:size-3.5" />
               <div className="hidden h-6 w-px bg-border sm:block" aria-hidden />
             </>
           ) : null}

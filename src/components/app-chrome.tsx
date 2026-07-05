@@ -13,10 +13,6 @@ export function AppChrome({
     <div className="app-shell relative min-h-dvh">
       <div
         aria-hidden
-        className="app-grid-bg pointer-events-none fixed inset-0 opacity-[0.45] dark:opacity-[0.2]"
-      />
-      <div
-        aria-hidden
         className="pointer-events-none fixed inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/[0.04] to-transparent"
       />
 
@@ -24,7 +20,7 @@ export function AppChrome({
 
       <main
         className={cn(
-          "relative mx-auto max-w-5xl px-4 pt-5 pb-24 sm:px-6 md:pb-10",
+          "relative mx-auto max-w-5xl px-4 pt-4 pb-24 sm:px-6 sm:pt-5 md:pb-10",
           mainClassName
         )}
       >

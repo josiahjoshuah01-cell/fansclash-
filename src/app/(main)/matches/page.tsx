@@ -1,4 +1,4 @@
-import { CalendarDays, Clock, Trophy, Users } from "lucide-react";
+import { CalendarDays, Trophy, Users } from "lucide-react";
 import type { Metadata } from "next";
 
 import { EmptyState } from "@/components/layout/empty-state";
@@ -28,17 +28,14 @@ export default async function MatchesPage() {
   const matchCount = openEvents.length;
 
   return (
-    <PageContent className="space-y-4">
+    <PageContent className="space-y-4 max-md:space-y-3">
       <PageHeader
         compact
         title="Open Matches"
-        description="Pick a side, stake your KES, and match with other fans before kickoff."
+        description="Pick a side, place your stake, and get matched with other fans before kickoff."
       />
 
-      <div
-        className="grid gap-2"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}
-      >
+      <div className="grid grid-cols-2 gap-2">
         <StatTile
           compact
           label="Open matches"
@@ -53,20 +50,16 @@ export default async function MatchesPage() {
           hint="fan vs fan pools"
           icon={Users}
         />
-        <StatTile
-          compact
-          label="Timezone"
-          value="EAT"
-          hint="UTC+3 · Nairobi"
-          icon={Clock}
-        />
       </div>
 
       <Panel
         compact
+        className="max-md:border-0 max-md:bg-transparent max-md:shadow-none"
+        headerClassName="max-md:hidden"
+        footerClassName="max-md:hidden"
         title="Match board"
         description="Tap a fixture to view pools and place your stake."
-        contentClassName="pt-3"
+        contentClassName="max-md:p-0"
         footer={
           <span className="inline-flex items-center gap-2">
             <CalendarDays className="size-3.5" />
