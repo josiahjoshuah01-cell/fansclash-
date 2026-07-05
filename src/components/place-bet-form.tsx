@@ -1,0 +1,172 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+import { Toast } from "@/components/ui/toast";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { mapPlaceBetError } from "@/lib/errors";
+import { formatKes, type SportingEvent } from "@/lib/events";
+import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
+
+export function PlaceBetForm({
+  event,
+  balance,
+  onBetPlaced,
+}: {
+  event: SportingEvent;
+  balance: number;
+  onBetPlaced: () => void;
+}) {
+  const supabase = createClient();
+  const [side, setSide] = useState<"team_a" | "team_b">("team_a");
+  const [amount, setAmount] = useState("");
+  const [confirming, setConfirming] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  const parsedAmount = Number(amount);
+
+  const handleSubmit = async () => {
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setToast({ type: "error", message: "Enter a valid stake amount." });
+      return;
+    }
+
+    if (parsedAmount > balance) {
+      setToast({
+        type: "error",
+        message: "Insufficient balance. Add funds to your wallet first.",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setToast(null);
+
+    const { error } = await supabase.rpc("place_bet", {
+      p_event_id: event.id,
+      p_side: side,
+      p_amount: parsedAmount,
+    });
+
+    setLoading(false);
+    setConfirming(false);
+
+    if (error) {
+      setToast({ type: "error", message: mapPlaceBetError(error.message) });
+      return;
+    }
+
+    setAmount("");
+    setToast({ type: "success", message: "Bet placed. Matching updates live below." });
+    onBetPlaced();
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Place a bet</CardTitle>
+          <CardDescription>
+            Available balance: {formatKes(balance)}. Your stake is matched
+            pro-rata against the other side until kickoff.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant={side === "team_a" ? "default" : "outline"}
+              className={cn("h-auto py-3")}
+              onClick={() => setSide("team_a")}
+              disabled={loading}
+            >
+              {event.team_a}
+            </Button>
+            <Button
+              type="button"
+              variant={side === "team_b" ? "default" : "outline"}
+              className={cn("h-auto py-3")}
+              onClick={() => setSide("team_b")}
+              disabled={loading}
+            >
+              {event.team_b}
+            </Button>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="stake" className="text-sm font-medium">
+              Stake (KES)
+            </label>
+            <Input
+              id="stake"
+              type="number"
+              min={1}
+              step={1}
+              placeholder="100"
+              value={amount}
+              disabled={loading}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+
+          {!confirming ? (
+            <Button
+              className="w-full"
+              disabled={loading || !amount}
+              onClick={() => setConfirming(true)}
+            >
+              Review bet
+            </Button>
+          ) : (
+            <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+              <p className="text-sm">
+                Confirm{" "}
+                <strong>{formatKes(parsedAmount)}</strong> on{" "}
+                <strong>{side === "team_a" ? event.team_a : event.team_b}</strong>
+                ?
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? "Placing…" : "Confirm bet"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setConfirming(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {toast ? <Toast type={toast.type} message={toast.message} /> : null}
+    </>
+  );
+}

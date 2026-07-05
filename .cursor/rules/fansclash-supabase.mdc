@@ -1,0 +1,30 @@
+---
+description: FansClash Supabase project isolation — never touch other products
+alwaysApply: true
+---
+
+# FansClash Supabase scope
+
+This repo is **FansClash only**. Do not read, write, migrate, or deploy to Supabase projects used by **Aruviah**, **Lunesa**, **Sealteam**, or any other app.
+
+## Allowed project (FansClash)
+
+- **Project ref:** `hvogahprmyrneupsqttw`
+- **URL:** `https://hvogahprmyrneupsqttw.supabase.co`
+- Source of truth: `supabase/project.ref`, `.env.local`, `src/lib/supabase/project.ts`
+
+## Blocked / out of scope
+
+- **`raneudpzisbqxfuxbmnu`** — Cursor Supabase MCP default; hosts other apps. **Never** apply FansClash migrations or Edge Functions here.
+- Any Supabase URL/ref not listed in `supabase/project.ref`
+
+## Before any Supabase MCP or CLI action
+
+1. Call `get_project_url` (MCP) or verify `supabase link` target.
+2. Confirm the ref is **`hvogahprmyrneupsqttw`**. If not, **stop** and tell the user to reconnect MCP to FansClash.
+3. Only run migrations/functions defined under this repo's `supabase/migrations` and `supabase/functions`.
+
+## App env
+
+- `NEXT_PUBLIC_SUPABASE_URL` must be `https://hvogahprmyrneupsqttw.supabase.co`
+- Never commit service-role keys; Edge Function secrets live in the FansClash Supabase dashboard only.

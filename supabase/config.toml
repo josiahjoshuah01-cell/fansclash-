@@ -1,0 +1,12 @@
+# FansClash Supabase — link CLI to this project only:
+#   supabase link --project-ref hvogahprmyrneupsqttw
+#
+# Do NOT link or apply migrations to raneudpzisbqxfuxbmnu or other workspaces.
+
+project_id = "hvogahprmyrneupsqttw"
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
