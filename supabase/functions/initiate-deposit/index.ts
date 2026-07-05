@@ -9,8 +9,12 @@ import {
 } from "../_shared/daraja.ts";
 
 interface InitiateDepositBody {
-  phone_number: string;
   amount: number;
+  phone_number?: string;
+}
+
+function isValidDarajaMsisdn(phone: string): boolean {
+  return /^254[17]\d{8}$/.test(toDarajaPhone(phone));
 }
 
 Deno.serve(async (req) => {
@@ -45,18 +49,46 @@ Deno.serve(async (req) => {
       });
     }
 
-    const body = (await req.json()) as InitiateDepositBody;
-    const amount = Number(body.amount);
-    const phoneNumber = body.phone_number?.trim();
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
 
-    if (!phoneNumber || !Number.isFinite(amount) || amount <= 0) {
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from("users")
+      .select("phone_number, is_suspended")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      return new Response(JSON.stringify({ error: profileError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (profile?.is_suspended) {
       return new Response(
-        JSON.stringify({ error: "Valid phone_number and amount are required" }),
+        JSON.stringify({
+          error: "Your account is suspended. Contact support for assistance.",
+        }),
         {
-          status: 400,
+          status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
+    }
+
+    const body = (await req.json()) as InitiateDepositBody;
+    const amount = Number(body.amount);
+    const verifiedPhone = profile?.phone_number?.trim() || null;
+    const requestPhone = body.phone_number?.trim() || null;
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return new Response(JSON.stringify({ error: "Valid amount is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (amount < 1) {
@@ -66,8 +98,41 @@ Deno.serve(async (req) => {
       });
     }
 
-    const darajaPhone = toDarajaPhone(phoneNumber);
-    if (!/^254[17]\d{8}$/.test(darajaPhone)) {
+    let stkPhone: string;
+
+    if (verifiedPhone) {
+      if (requestPhone) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Verified M-Pesa number is locked to your account. Remove phone_number from the request.",
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      stkPhone = toDarajaPhone(verifiedPhone);
+    } else {
+      if (!requestPhone) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Enter your M-Pesa number for your first deposit. It will be verified and locked after a successful payment.",
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      stkPhone = toDarajaPhone(requestPhone);
+    }
+
+    if (!isValidDarajaMsisdn(stkPhone)) {
       return new Response(
         JSON.stringify({ error: "Invalid Kenyan phone number format" }),
         {
@@ -77,8 +142,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // SANDBOX credentials from Supabase Edge Function secrets.
-    // Production: replace with live Daraja credentials in project secrets.
     const { consumerKey, consumerSecret, shortcode, passkey, callbackUrl } =
       getDarajaConfig();
 
@@ -90,7 +153,7 @@ Deno.serve(async (req) => {
       passkey,
       callbackUrl,
       amount,
-      phoneNumber: darajaPhone,
+      phoneNumber: stkPhone,
       accountReference: "FansClash",
       transactionDesc: "Wallet deposit",
     });
@@ -107,11 +170,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
     const { data: pendingDeposit, error: insertError } = await supabaseAdmin
       .from("pending_deposits")
       .insert({
@@ -119,7 +177,7 @@ Deno.serve(async (req) => {
         checkout_request_id: stkResponse.CheckoutRequestID,
         merchant_request_id: stkResponse.MerchantRequestID,
         amount,
-        phone_number: darajaPhone,
+        phone_number: stkPhone,
         status: "pending",
       })
       .select("id, checkout_request_id, status")

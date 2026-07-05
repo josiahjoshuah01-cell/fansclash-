@@ -2,18 +2,12 @@
 
 import { useEffect, useState } from "react";
 
+import { Panel } from "@/components/layout/panel";
 import { Toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { mapPlaceBetError } from "@/lib/errors";
-import { formatKes, type SportingEvent } from "@/lib/events";
+import { formatKes, teamAName, teamBName, type SportingEvent } from "@/lib/events";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -82,15 +76,11 @@ export function PlaceBetForm({
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Place a bet</CardTitle>
-          <CardDescription>
-            Available balance: {formatKes(balance)}. Your stake is matched
-            pro-rata against the other side until kickoff.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Panel
+        title="Place a bet"
+        description={`Available balance: ${formatKes(balance)}. Your stake is matched pro-rata against the other side until kickoff.`}
+      >
+        <div className="space-y-4">
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
@@ -99,7 +89,7 @@ export function PlaceBetForm({
               onClick={() => setSide("team_a")}
               disabled={loading}
             >
-              {event.team_a}
+              {teamAName(event)}
             </Button>
             <Button
               type="button"
@@ -108,7 +98,7 @@ export function PlaceBetForm({
               onClick={() => setSide("team_b")}
               disabled={loading}
             >
-              {event.team_b}
+              {teamBName(event)}
             </Button>
           </div>
 
@@ -141,7 +131,7 @@ export function PlaceBetForm({
               <p className="text-sm">
                 Confirm{" "}
                 <strong>{formatKes(parsedAmount)}</strong> on{" "}
-                <strong>{side === "team_a" ? event.team_a : event.team_b}</strong>
+                <strong>{side === "team_a" ? teamAName(event) : teamBName(event)}</strong>
                 ?
               </p>
               <div className="flex gap-2">
@@ -163,8 +153,8 @@ export function PlaceBetForm({
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </Panel>
 
       {toast ? <Toast type={toast.type} message={toast.message} /> : null}
     </>

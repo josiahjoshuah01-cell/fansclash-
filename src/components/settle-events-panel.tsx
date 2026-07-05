@@ -3,24 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { Panel } from "@/components/layout/panel";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { formatKickoffEat } from "@/lib/events";
 import { createClient } from "@/lib/supabase/client";
 import { MatchCardSkeleton } from "@/components/ui/skeleton";
 
 type AdminEvent = {
   id: string;
-  team_a: string;
-  team_b: string;
   kickoff_time: string;
   status: string;
+  team_a: { name: string } | null;
+  team_b: { name: string } | null;
 };
 
 export function SettleEventsPanel() {
@@ -35,30 +29,33 @@ export function SettleEventsPanel() {
   useEffect(() => {
     supabase
       .from("sporting_events")
-      .select("id, team_a, team_b, kickoff_time, status")
+      .select(
+        `
+        id,
+        kickoff_time,
+        status,
+        team_a:teams!sporting_events_team_a_id_fkey (name),
+        team_b:teams!sporting_events_team_b_id_fkey (name)
+      `
+      )
       .in("status", ["locked"])
       .order("kickoff_time", { ascending: true })
       .then(({ data }) => {
-        setEvents((data ?? []) as AdminEvent[]);
+        setEvents(
+          (data ?? []).map((row) => ({
+            ...row,
+            team_a: Array.isArray(row.team_a) ? row.team_a[0] ?? null : row.team_a,
+            team_b: Array.isArray(row.team_b) ? row.team_b[0] ?? null : row.team_b,
+          })) as AdminEvent[]
+        );
         setLoadingEvents(false);
       });
   }, [supabase]);
 
-  if (loadingEvents) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Settle events</CardTitle>
-          <CardDescription>Loading locked events…</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <MatchCardSkeleton />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const settle = async (eventId: string, result: "team_a" | "team_b" | "draw") => {
+  const settle = async (
+    eventId: string,
+    result: "team_a" | "team_b" | "draw"
+  ) => {
     setLoadingId(eventId);
     setMessage(null);
     setError(null);
@@ -80,38 +77,45 @@ export function SettleEventsPanel() {
     router.refresh();
   };
 
+  if (loadingEvents) {
+    return (
+      <Panel
+        title="Settle events"
+        description="Loading locked events…"
+        contentClassName="p-5 sm:p-6"
+      >
+        <MatchCardSkeleton />
+      </Panel>
+    );
+  }
+
   if (events.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Settle events</CardTitle>
-          <CardDescription>
-            No locked events waiting for a result. Events lock automatically at
-            kickoff via the lock-event-at-kickoff job.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <Panel
+        title="Settle events"
+        description="No locked events waiting for a result. Events lock automatically at kickoff via the lock-event-at-kickoff job."
+      />
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Settle events</CardTitle>
-        <CardDescription>
-          Locked events only. Settlement is idempotent — already completed or
-          voided events are rejected.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {events.map((event) => (
+    <Panel
+      title="Settle events"
+      description="Locked events only. Settlement is idempotent — already completed or voided events are rejected."
+      contentClassName="space-y-4 p-5 sm:p-6"
+    >
+      {events.map((event) => {
+        const teamA = event.team_a?.name ?? "Team A";
+        const teamB = event.team_b?.name ?? "Team B";
+
+        return (
           <div
             key={event.id}
-            className="rounded-lg border border-border p-4 space-y-3"
+            className="space-y-3 rounded-lg border border-border bg-muted/20 p-4"
           >
             <div>
               <p className="font-medium">
-                {event.team_a} vs {event.team_b}
+                {teamA} vs {teamB}
               </p>
               <p className="text-sm text-muted-foreground">
                 {formatKickoffEat(event.kickoff_time)} EAT · {event.status}
@@ -123,7 +127,7 @@ export function SettleEventsPanel() {
                 disabled={loadingId === event.id}
                 onClick={() => settle(event.id, "team_a")}
               >
-                {event.team_a} wins
+                {teamA} wins
               </Button>
               <Button
                 size="sm"
@@ -131,7 +135,7 @@ export function SettleEventsPanel() {
                 disabled={loadingId === event.id}
                 onClick={() => settle(event.id, "team_b")}
               >
-                {event.team_b} wins
+                {teamB} wins
               </Button>
               <Button
                 size="sm"
@@ -143,19 +147,19 @@ export function SettleEventsPanel() {
               </Button>
             </div>
           </div>
-        ))}
+        );
+      })}
 
-        {error ? (
-          <p className="rounded-md bg-warning/10 px-3 py-2 text-sm text-warning">
-            {error}
-          </p>
-        ) : null}
-        {message ? (
-          <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success">
-            {message}
-          </p>
-        ) : null}
-      </CardContent>
-    </Card>
+      {error ? (
+        <p className="rounded-lg border border-warning/25 bg-warning/10 px-3 py-2 text-sm text-warning">
+          {error}
+        </p>
+      ) : null}
+      {message ? (
+        <p className="rounded-lg border border-success/20 bg-success/10 px-3 py-2 text-sm text-success">
+          {message}
+        </p>
+      ) : null}
+    </Panel>
   );
 }

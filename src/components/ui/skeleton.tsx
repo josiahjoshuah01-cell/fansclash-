@@ -14,15 +14,22 @@ export function Skeleton({
 
 export function MatchCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-      <div className="flex justify-between gap-4">
-        <Skeleton className="h-6 w-2/3" />
-        <Skeleton className="h-4 w-24" />
-      </div>
-      <Skeleton className="h-3 w-full rounded-full" />
-      <div className="flex justify-between">
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-4 w-16" />
+    <div className="rounded-xl border border-border bg-card px-[18px] py-3">
+      <div className="flex items-center gap-4">
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-4 w-4/5" />
+          <div className="space-y-1">
+            <div className="flex justify-between gap-2">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-[5px] w-full rounded-full" />
+          </div>
+        </div>
+        <div className="shrink-0 space-y-1 text-right">
+          <Skeleton className="ml-auto h-3 w-14" />
+          <Skeleton className="ml-auto h-4 w-16" />
+        </div>
       </div>
     </div>
   );

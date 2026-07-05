@@ -3,16 +3,11 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { Panel } from "@/components/layout/panel";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Toast } from "@/components/ui/toast";
+import { formatVerifiedMsisdn, isVerifiedMsisdn } from "@/lib/phone-display";
 import { createClient } from "@/lib/supabase/client";
 import {
   isValidKenyanPhone,
@@ -34,6 +29,7 @@ export function AddFundsCard({
 
   const [amount, setAmount] = useState("");
   const [phoneDigits, setPhoneDigits] = useState("");
+  const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null);
   const [phase, setPhase] = useState<DepositPhase>("idle");
   const [toast, setToast] = useState<{
     type: "success" | "error";
@@ -42,12 +38,23 @@ export function AddFundsCard({
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user?.phone) {
-        setPhoneDigits(normalizeKenyanDigits(user.phone));
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("users")
+        .select("phone_number")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const phone = profile?.phone_number ?? null;
+      setVerifiedPhone(phone);
+
+      if (isVerifiedMsisdn(phone)) {
+        setPhoneDigits(normalizeKenyanDigits(phone));
       }
     });
-  }, [supabase.auth]);
+  }, [supabase]);
 
   useEffect(() => {
     if (!toast) return;
@@ -105,6 +112,8 @@ export function AddFundsCard({
     return intervalId;
   };
 
+  const hasVerifiedPhone = isVerifiedMsisdn(verifiedPhone);
+
   const handleDeposit = async () => {
     const parsedAmount = Number(amount);
 
@@ -113,7 +122,7 @@ export function AddFundsCard({
       return;
     }
 
-    if (!isValidKenyanPhone(phoneDigits)) {
+    if (!hasVerifiedPhone && !isValidKenyanPhone(phoneDigits)) {
       setToast({
         type: "error",
         message: "Enter a valid Kenyan mobile number (9 digits after +254).",
@@ -125,11 +134,16 @@ export function AddFundsCard({
     setToast(null);
     setStatusMessage(null);
 
+    const body: { amount: number; phone_number?: string } = {
+      amount: parsedAmount,
+    };
+
+    if (!hasVerifiedPhone) {
+      body.phone_number = toE164KenyanPhone(phoneDigits);
+    }
+
     const { data, error } = await supabase.functions.invoke("initiate-deposit", {
-      body: {
-        amount: parsedAmount,
-        phone_number: toE164KenyanPhone(phoneDigits),
-      },
+      body,
     });
 
     if (error || data?.error) {
@@ -154,15 +168,11 @@ export function AddFundsCard({
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Add funds</CardTitle>
-          <CardDescription>
-            Deposit via M-Pesa STK Push. Sandbox mode — use Daraja test credentials
-            and the Safaricom sandbox test number.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Panel
+        title="Add funds"
+        description="Deposit via M-Pesa STK Push. Sandbox mode — use Daraja test credentials and the Safaricom sandbox test number."
+      >
+        <div className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="deposit-amount" className="text-sm font-medium">
               Amount (KES)
@@ -180,26 +190,44 @@ export function AddFundsCard({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="deposit-phone" className="text-sm font-medium">
-              M-Pesa phone number
-            </label>
-            <div className="flex">
-              <span className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground">
-                +254
-              </span>
-              <Input
-                id="deposit-phone"
-                type="tel"
-                inputMode="numeric"
-                placeholder="712345678"
-                value={phoneDigits}
-                disabled={isBusy}
-                onChange={(event) =>
-                  setPhoneDigits(normalizeKenyanDigits(event.target.value).slice(0, 9))
-                }
-                className="rounded-l-none"
-              />
-            </div>
+            <p className="text-sm font-medium">M-Pesa phone number</p>
+            {hasVerifiedPhone ? (
+              <>
+                <div className="rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-sm tabular-nums">
+                  {formatVerifiedMsisdn(verifiedPhone)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Verified by your first successful deposit. Deposits always use
+                  this number.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="flex">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground">
+                    +254
+                  </span>
+                  <Input
+                    id="deposit-phone"
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder="712345678"
+                    value={phoneDigits}
+                    disabled={isBusy}
+                    onChange={(event) =>
+                      setPhoneDigits(
+                        normalizeKenyanDigits(event.target.value).slice(0, 9)
+                      )
+                    }
+                    className="rounded-l-none"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Your first successful deposit verifies and locks this number to
+                  your account.
+                </p>
+              </>
+            )}
           </div>
 
           <Button
@@ -223,12 +251,12 @@ export function AddFundsCard({
           </Button>
 
           {statusMessage ? (
-            <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+            <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
               {statusMessage}
             </p>
           ) : null}
-        </CardContent>
-      </Card>
+        </div>
+      </Panel>
 
       {toast ? <Toast type={toast.type} message={toast.message} /> : null}
     </>

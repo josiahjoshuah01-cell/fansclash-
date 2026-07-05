@@ -1,44 +1,41 @@
-import { Ticket, User, Wallet } from "lucide-react";
 import Link from "next/link";
 
+import { MainNav } from "@/components/main-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
+import { WalletBadge } from "@/components/wallet-badge";
+import { getAdminAccess } from "@/lib/admin-server";
 
-export function TopNav() {
+function LogoMark() {
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
-        <Link
-          href="/"
-          className="text-lg font-bold tracking-tight text-foreground transition-colors hover:text-primary"
-        >
-          FansClash
-        </Link>
+    <span className="flex size-8 items-center justify-center rounded-lg border border-primary/20 bg-primary text-xs font-bold text-primary-foreground shadow-sm">
+      FC
+    </span>
+  );
+}
+
+export async function TopNav() {
+  const { isAdmin } = await getAdminAccess();
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/75">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-6">
+          <Link
+            href="/matches"
+            className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
+          >
+            <LogoMark />
+            <span className="truncate text-lg font-bold tracking-tight">
+              FansClash
+            </span>
+          </Link>
+          <MainNav showAdmin={isAdmin} />
+        </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <Link
-            href="/bets"
-            className="hidden items-center gap-1.5 rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
-          >
-            <Ticket className="size-4" />
-            <span>My bets</span>
-          </Link>
-
-          <Link
-            href="/wallet"
-            className="hidden items-center gap-1.5 rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
-          >
-            <Wallet className="size-4" />
-            <span>Wallet</span>
-          </Link>
-
+          <WalletBadge className="hidden sm:inline-flex" />
+          <div className="hidden h-6 w-px bg-border sm:block" aria-hidden />
           <ThemeToggle />
-
-          <Button variant="ghost" size="icon" aria-label="Profile" asChild>
-            <Link href="/profile">
-              <User className="size-5" />
-            </Link>
-          </Button>
         </div>
       </div>
     </header>

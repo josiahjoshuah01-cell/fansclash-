@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 
 import { EventDetail } from "@/components/event-detail";
+import { SPORTING_EVENT_SELECT, normalizeSportingEvent } from "@/lib/events";
 import { createClient } from "@/lib/supabase/server";
-import type { SportingEvent } from "@/lib/events";
 
 export default async function EventPage({
   params,
@@ -13,7 +13,7 @@ export default async function EventPage({
 
   const { data: event } = await supabase
     .from("sporting_events")
-    .select("id, team_a, team_b, kickoff_time, status")
+    .select(SPORTING_EVENT_SELECT)
     .eq("id", params.id)
     .maybeSingle();
 
@@ -37,7 +37,7 @@ export default async function EventPage({
 
   return (
     <EventDetail
-      event={event as SportingEvent}
+      event={normalizeSportingEvent(event)}
       initialBalance={balance}
     />
   );

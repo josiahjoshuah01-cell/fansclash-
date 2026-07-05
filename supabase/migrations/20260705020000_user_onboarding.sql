@@ -21,7 +21,6 @@ as $$
 declare
   v_user_id uuid := auth.uid();
   v_age integer;
-  v_phone text;
 begin
   if v_user_id is null then
     raise exception 'Not authenticated';
@@ -32,20 +31,10 @@ begin
     raise exception 'You must be at least 18 years old to use FansClash';
   end if;
 
-  select coalesce(phone, raw_user_meta_data->>'phone')
-  into v_phone
-  from auth.users
-  where id = v_user_id;
-
-  if v_phone is null or v_phone = '' then
-    raise exception 'Phone number not found on auth account';
-  end if;
-
   insert into public.users (id, phone_number, date_of_birth)
-  values (v_user_id, v_phone, p_date_of_birth)
+  values (v_user_id, null, p_date_of_birth)
   on conflict (id) do update
-    set phone_number = excluded.phone_number,
-        date_of_birth = excluded.date_of_birth;
+    set date_of_birth = excluded.date_of_birth;
 
   insert into public.wallets (user_id, balance, currency)
   values (v_user_id, 0, 'KES')

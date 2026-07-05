@@ -5,6 +5,7 @@ export type TransactionRow = {
   type: string;
   amount: number;
   balance_after: number;
+  status?: string | null;
   created_at: string;
 };
 

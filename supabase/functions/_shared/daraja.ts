@@ -145,6 +145,97 @@ export async function initiateStkPush(params: {
   return data;
 }
 
+export function getB2CConfig() {
+  const consumerKey = Deno.env.get("CONSUMER_KEY");
+  const consumerSecret = Deno.env.get("CONSUMER_SECRET");
+  const initiatorName = Deno.env.get("B2C_INITIATOR_NAME");
+  const securityCredential = Deno.env.get("B2C_SECURITY_CREDENTIAL");
+  const shortcode = Deno.env.get("B2C_SHORTCODE");
+  const resultUrl = Deno.env.get("B2C_RESULT_URL");
+  const timeoutUrl = Deno.env.get("B2C_TIMEOUT_URL");
+
+  if (
+    !consumerKey ||
+    !consumerSecret ||
+    !initiatorName ||
+    !securityCredential ||
+    !shortcode ||
+    !resultUrl ||
+    !timeoutUrl
+  ) {
+    throw new Error("Missing Daraja B2C environment variables");
+  }
+
+  return {
+    consumerKey,
+    consumerSecret,
+    initiatorName,
+    securityCredential,
+    shortcode,
+    resultUrl,
+    timeoutUrl,
+  };
+}
+
+export function isWithdrawalsEnabled(): boolean {
+  return Deno.env.get("WITHDRAWALS_ENABLED") === "true";
+}
+
+export async function initiateB2CPayment(params: {
+  accessToken: string;
+  initiatorName: string;
+  securityCredential: string;
+  shortcode: string;
+  resultUrl: string;
+  timeoutUrl: string;
+  originatorConversationId: string;
+  amount: number;
+  phoneNumber: string;
+  remarks?: string;
+  occasion?: string;
+}): Promise<{
+  ConversationID: string;
+  OriginatorConversationID: string;
+  ResponseCode: string;
+  ResponseDescription: string;
+}> {
+  const phone = toDarajaPhone(params.phoneNumber);
+
+  const response = await fetch(
+    `${DARAJA_SANDBOX_BASE}/mpesa/b2c/v3/paymentrequest`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${params.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        OriginatorConversationID: params.originatorConversationId,
+        InitiatorName: params.initiatorName,
+        SecurityCredential: params.securityCredential,
+        CommandID: "BusinessPayment",
+        Amount: Math.round(params.amount),
+        PartyA: params.shortcode,
+        PartyB: phone,
+        Remarks: params.remarks ?? "FansClash wallet withdrawal",
+        QueueTimeOutURL: params.timeoutUrl,
+        ResultURL: params.resultUrl,
+        Occassion: params.occasion ?? "FansClash",
+      }),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.errorMessage || data.error || `B2C payment failed: ${response.status}`
+    );
+  }
+
+  return data;
+}
+
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":

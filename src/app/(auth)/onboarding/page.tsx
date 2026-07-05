@@ -1,19 +1,25 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Panel } from "@/components/layout/panel";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { isAtLeast18 } from "@/lib/phone";
+
+function FansClashMark() {
+  return (
+    <div
+      aria-hidden
+      className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-sm font-bold tracking-tight text-primary-foreground shadow-lg shadow-primary/25 ring-1 ring-primary/20"
+    >
+      FC
+    </div>
+  );
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -65,22 +71,28 @@ export default function OnboardingPage() {
     }
 
     router.refresh();
-    router.replace("/");
+    router.replace("/matches");
   };
 
   return (
-    <div className="w-full max-w-[400px]">
-      <Card className="w-full border-border bg-card shadow-sm">
-      <CardHeader>
-        <CardTitle>Confirm your age</CardTitle>
-        <CardDescription>
-          FansClash is for adults only. You must be{" "}
-          <strong className="text-foreground">18 or older</strong> to create an
-          account and place bets. Enter your date of birth to continue.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="w-full max-w-[420px]">
+      <Panel
+        className="overflow-hidden shadow-xl shadow-black/5 dark:shadow-black/20"
+        contentClassName="p-0"
+      >
+        <div className="space-y-6 border-b border-border bg-muted/30 px-6 py-8 text-center">
+          <div className="flex flex-col items-center gap-4">
+            <FansClashMark />
+            <div className="space-y-1">
+              <p className="text-2xl font-bold tracking-tight">Almost there</p>
+              <p className="text-sm text-muted-foreground">
+                Confirm you are 18 or older to start betting.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4 px-6 py-8">
           <div className="space-y-2">
             <label htmlFor="dob" className="text-sm font-medium">
               Date of birth
@@ -94,22 +106,33 @@ export default function OnboardingPage() {
                 setDateOfBirth(event.target.value);
                 setError(null);
               }}
+              className="h-11"
               required
             />
+            <p className="text-xs text-muted-foreground">
+              FansClash is for adults only. Your date of birth is stored for
+              compliance.
+            </p>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating account…" : "Continue"}
+          <Button type="submit" className="h-11 w-full" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Creating account…
+              </>
+            ) : (
+              "Continue to matches"
+            )}
           </Button>
 
           {error ? (
-            <p className="rounded-md bg-warning/10 px-3 py-2 text-sm text-warning">
+            <p className="rounded-lg border border-warning/25 bg-warning/10 px-3 py-2.5 text-sm text-warning">
               {error}
             </p>
           ) : null}
         </form>
-      </CardContent>
-    </Card>
+      </Panel>
     </div>
   );
 }

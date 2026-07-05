@@ -1,5 +1,9 @@
 "use client";
 
+import { Receipt } from "lucide-react";
+
+import { EmptyState } from "@/components/layout/empty-state";
+import { Panel } from "@/components/layout/panel";
 import {
   formatTransactionAmount,
   formatTransactionDate,
@@ -20,48 +24,56 @@ export function TransactionHistory({
 }) {
   if (loading) {
     return (
-      <div className="rounded-xl border border-border bg-card">
-        <div className="border-b border-border px-6 py-4">
-          <h2 className="font-semibold">Transaction history</h2>
-        </div>
-        <div className="divide-y divide-border">
-          <ListRowSkeleton />
-          <ListRowSkeleton />
-          <ListRowSkeleton />
-        </div>
-      </div>
+      <Panel
+        title="Transaction history"
+        compact
+        contentClassName="divide-y divide-border p-0"
+      >
+        <ListRowSkeleton />
+        <ListRowSkeleton />
+        <ListRowSkeleton />
+      </Panel>
     );
   }
 
   if (transactions.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center">
-        <p className="font-medium">No transactions yet</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Deposits and bets will appear here.
-        </p>
-      </div>
+      <Panel title="Transaction history" compact>
+        <EmptyState
+          compact
+          icon={Receipt}
+          title="No transactions yet"
+          description="Deposits and bets will appear here once you add funds or place a stake."
+        />
+      </Panel>
     );
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card">
-      <div className="border-b border-border px-6 py-4">
-        <h2 className="font-semibold">Transaction history</h2>
-      </div>
-      <ul className="divide-y divide-border">
+    <Panel
+      title="Transaction history"
+      description="Deposits, stakes, payouts, and refunds."
+      compact
+      contentClassName="divide-y divide-border p-0"
+    >
+      <ul>
         {transactions.map((tx) => {
           const credit = isCreditTransaction(tx.type);
 
           return (
             <li
               key={tx.id}
-              className="flex items-center justify-between gap-4 px-6 py-4"
+              className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6"
             >
               <div className="min-w-0">
                 <p className="font-medium">{getTransactionLabel(tx.type)}</p>
                 <p className="text-xs text-muted-foreground">
                   {formatTransactionDate(tx.created_at)}
+                  {tx.type === "withdrawal" && tx.status === "pending"
+                    ? " · Pending"
+                    : tx.type === "withdrawal" && tx.status === "failed"
+                      ? " · Failed"
+                      : null}
                 </p>
               </div>
               <div className="text-right">
@@ -81,6 +93,6 @@ export function TransactionHistory({
           );
         })}
       </ul>
-    </div>
+    </Panel>
   );
 }

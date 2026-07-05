@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { AddFundsCard } from "@/components/add-funds-card";
+import { WithdrawFundsCard } from "@/components/withdraw-funds-card";
+import { isWithdrawalsEnabled } from "@/lib/features";
+import { PageContent } from "@/components/layout/page-content";
+import { PageHeader } from "@/components/layout/page-header";
+import { Panel } from "@/components/layout/panel";
 import { TransactionHistory } from "@/components/transaction-history";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +29,8 @@ export default function WalletPage() {
   const [loadingBalance, setLoadingBalance] = useState(true);
   const [loadingTransactions, setLoadingTransactions] = useState(true);
   const [showDeposit, setShowDeposit] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const withdrawalsEnabled = isWithdrawalsEnabled();
 
   const loadWallet = useCallback(async () => {
     const {
@@ -40,7 +47,7 @@ export default function WalletPage() {
         .maybeSingle(),
       supabase
         .from("transactions")
-        .select("id, type, amount, balance_after, created_at")
+        .select("id, type, amount, balance_after, status, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
     ]);
@@ -60,40 +67,78 @@ export default function WalletPage() {
     loadWallet();
   };
 
+  const handleWithdrawComplete = () => {
+    setShowWithdraw(false);
+    loadWallet();
+  };
+
   return (
-    <div className="mx-auto max-w-lg space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Wallet</h1>
-        <p className="mt-1 text-muted-foreground">
-          Top up with M-Pesa and track your betting balance.
-        </p>
-      </div>
-
-      <div className="rounded-xl border border-border bg-card p-6">
-        <p className="text-sm text-muted-foreground">Available balance</p>
-        {loadingBalance ? (
-          <Skeleton className="mt-2 h-10 w-48" />
-        ) : (
-          <p className="mt-2 text-4xl font-bold tabular-nums">
-            {formatKes(Number(balance ?? 0))}
-          </p>
-        )}
-        <Button
-          className="mt-6 w-full sm:w-auto"
-          onClick={() => setShowDeposit((open) => !open)}
-        >
-          {showDeposit ? "Hide deposit form" : "Add funds"}
-        </Button>
-      </div>
-
-      {showDeposit ? (
-        <AddFundsCard onDepositComplete={handleDepositComplete} />
-      ) : null}
-
-      <TransactionHistory
-        transactions={transactions}
-        loading={loadingTransactions}
+    <PageContent className="space-y-4">
+      <PageHeader
+        compact
+        title="Wallet"
+        description="Top up with M-Pesa and track your betting balance."
       />
-    </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(240px,320px)_minmax(0,1fr)] md:items-start">
+        <div className="flex flex-col gap-4">
+          <Panel
+            compact
+            title="Available balance"
+            description="Funds are held in KES until matched or settled."
+          >
+            {loadingBalance ? (
+              <Skeleton className="h-8 w-40" />
+            ) : (
+              <p className="text-[28px] font-bold leading-none tabular-nums tracking-tight">
+                {formatKes(Number(balance ?? 0))}
+              </p>
+            )}
+            <Button
+              className="mt-4 w-full"
+              onClick={() => setShowDeposit((open) => !open)}
+            >
+              {showDeposit ? "Hide deposit form" : "Add funds"}
+            </Button>
+
+            <Button
+              className="mt-2 w-full"
+              variant="outline"
+              disabled={!withdrawalsEnabled}
+              onClick={() => {
+                if (!withdrawalsEnabled) return;
+                setShowWithdraw((open) => !open);
+              }}
+            >
+              <span className="flex w-full items-center justify-between gap-2">
+                <span>
+                  {withdrawalsEnabled && showWithdraw
+                    ? "Hide withdrawal form"
+                    : "Withdraw funds"}
+                </span>
+                {!withdrawalsEnabled ? (
+                  <span className="rounded-md border border-border bg-muted/50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Coming soon
+                  </span>
+                ) : null}
+              </span>
+            </Button>
+          </Panel>
+
+          {showDeposit ? (
+            <AddFundsCard onDepositComplete={handleDepositComplete} />
+          ) : null}
+
+          {withdrawalsEnabled && showWithdraw ? (
+            <WithdrawFundsCard onWithdrawComplete={handleWithdrawComplete} />
+          ) : null}
+        </div>
+
+        <TransactionHistory
+          transactions={transactions}
+          loading={loadingTransactions}
+        />
+      </div>
+    </PageContent>
   );
 }

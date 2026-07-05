@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { isAdminPhone } from "@/lib/admin";
+import { isAdminUser } from "@/lib/admin";
 import { assertFansClashSupabaseUrl } from "@/lib/supabase/project";
 
 export async function updateSession(request: NextRequest) {
@@ -63,14 +63,20 @@ export async function updateSession(request: NextRequest) {
 
     if (hasCompletedOnboarding && (isSignIn || isOnboarding)) {
       const url = request.nextUrl.clone();
-      url.pathname = "/";
+      url.pathname = "/matches";
       return NextResponse.redirect(url);
     }
 
-    if (isAdminRoute && !isAdminPhone(user.phone)) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
+    if (isAdminRoute) {
+      const admin = await isAdminUser(supabase, user.id, {
+        phone: user.phone,
+        email: user.email,
+      });
+      if (!admin) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/matches";
+        return NextResponse.redirect(url);
+      }
     }
   }
 
