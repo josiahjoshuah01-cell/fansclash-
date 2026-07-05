@@ -1,3 +1,6 @@
+import { Suspense } from "react";
+
+import { AuthModeTabs } from "@/components/auth-mode-tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AuthLayout({
@@ -29,7 +32,10 @@ export default function AuthLayout({
         }}
       />
 
-      <div className="absolute right-3 top-3 z-20 sm:right-6 sm:top-6">
+      <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-3 py-3 sm:px-6 sm:py-6">
+        <Suspense fallback={<div className="h-9 w-40 rounded-lg border border-border bg-background/80" />}>
+          <AuthModeTabs />
+        </Suspense>
         <ThemeToggle />
       </div>
 

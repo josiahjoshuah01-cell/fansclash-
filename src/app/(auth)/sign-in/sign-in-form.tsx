@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2, LogIn, UserPlus } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -91,6 +92,11 @@ export function SignInForm() {
       setError(
         "Email verification link expired or was already used. Sign in with your password, or resend a new verification email below."
       );
+    }
+
+    const requestedMode = searchParams.get("mode");
+    if (requestedMode === "sign_up") {
+      setMode("sign_up");
     }
   }, [searchParams]);
 
@@ -476,8 +482,15 @@ export function SignInForm() {
         ) : null}
 
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          By continuing, you agree to our terms of service and confirm you are
-          18 or older.
+          By continuing, you agree to our{" "}
+          <Link href="/terms" className="text-primary hover:underline">
+            terms of service
+          </Link>{" "}
+          and confirm you are 18 or older. See our{" "}
+          <Link href="/responsible-play" className="text-primary hover:underline">
+            responsible play
+          </Link>{" "}
+          guidelines.
         </p>
       </CardContent>
     </Card>

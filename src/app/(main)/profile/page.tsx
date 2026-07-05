@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PageContent } from "@/components/layout/page-content";
 import { PageHeader } from "@/components/layout/page-header";
 import { Panel } from "@/components/layout/panel";
+import { SignOutButton } from "@/components/sign-out-button";
 import { formatVerifiedMsisdn } from "@/lib/phone-display";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -135,6 +136,10 @@ export default async function ProfilePage() {
             </Link>
           </ProfileRow>
         ) : null}
+      </Panel>
+
+      <Panel title="Session" description="Sign out on shared or public devices.">
+        <SignOutButton className="w-full sm:w-auto" />
       </Panel>
     </PageContent>
   );

@@ -1,7 +1,9 @@
 import Link from "next/link";
 
+import { AuthHeaderActions } from "@/components/auth-header-actions";
 import { MainNav } from "@/components/main-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UserAccountMenu } from "@/components/user-account-menu";
 import { WalletBadge } from "@/components/wallet-badge";
 import { getAdminAccess } from "@/lib/admin-server";
 
@@ -14,7 +16,7 @@ function LogoMark() {
 }
 
 export async function TopNav() {
-  const { isAdmin } = await getAdminAccess();
+  const { isAdmin, user } = await getAdminAccess();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/75">
@@ -33,9 +35,18 @@ export async function TopNav() {
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <WalletBadge className="hidden sm:inline-flex" />
-          <div className="hidden h-6 w-px bg-border sm:block" aria-hidden />
+          {user ? (
+            <>
+              <WalletBadge className="hidden sm:inline-flex" />
+              <div className="hidden h-6 w-px bg-border sm:block" aria-hidden />
+            </>
+          ) : null}
           <ThemeToggle />
+          {user ? (
+            <UserAccountMenu email={user.email ?? null} />
+          ) : (
+            <AuthHeaderActions />
+          )}
         </div>
       </div>
     </header>

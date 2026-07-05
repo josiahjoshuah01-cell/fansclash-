@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isAdminUser } from "@/lib/admin";
+import { isPublicMarketingPath } from "@/lib/marketing";
 import { assertFansClashSupabaseUrl } from "@/lib/supabase/project";
 
 export async function updateSession(request: NextRequest) {
@@ -37,10 +38,13 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isSignIn = pathname.startsWith("/sign-in");
+  const isAuthCallback = pathname.startsWith("/auth/callback");
   const isOnboarding = pathname.startsWith("/onboarding");
   const isAdminRoute = pathname.startsWith("/admin");
+  const isPublicRoute =
+    isSignIn || isAuthCallback || isPublicMarketingPath(pathname);
 
-  if (!user && !isSignIn) {
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
     return NextResponse.redirect(url);

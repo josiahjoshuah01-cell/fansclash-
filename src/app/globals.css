@@ -73,6 +73,16 @@
   a {
     @apply text-inherit no-underline;
   }
+
+  html:has(.landing-shell) {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+
+  html:has(.landing-shell)::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer utilities {
