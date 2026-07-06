@@ -362,12 +362,22 @@ export function SignInForm() {
           </div>
 
           <div className="space-y-1.5">
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-foreground"
-            >
-              Password
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-foreground"
+              >
+                Password
+              </label>
+              {mode === "sign_in" ? (
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              ) : null}
+            </div>
             <div className="relative">
               <Input
                 id="password"

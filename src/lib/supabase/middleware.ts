@@ -38,11 +38,15 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isSignIn = pathname.startsWith("/sign-in");
+  const isForgotPassword = pathname.startsWith("/forgot-password");
   const isAuthCallback = pathname.startsWith("/auth/callback");
   const isOnboarding = pathname.startsWith("/onboarding");
   const isAdminRoute = pathname.startsWith("/admin");
   const isPublicRoute =
-    isSignIn || isAuthCallback || isPublicMarketingPath(pathname);
+    isSignIn ||
+    isForgotPassword ||
+    isAuthCallback ||
+    isPublicMarketingPath(pathname);
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
@@ -65,7 +69,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    if (hasCompletedOnboarding && (isSignIn || isOnboarding)) {
+    if (hasCompletedOnboarding && (isSignIn || isOnboarding || isForgotPassword)) {
       const url = request.nextUrl.clone();
       url.pathname = "/matches";
       return NextResponse.redirect(url);

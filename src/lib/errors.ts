@@ -56,7 +56,7 @@ export function mapPasswordAuthError(message: string): string {
   const lower = message.toLowerCase();
 
   if (lower.includes("invalid login credentials")) {
-    return "Incorrect email or password.";
+    return "Incorrect email or password. Tap Forgot password? on the sign-in page to reset it.";
   }
 
   if (lower.includes("email not confirmed")) {
