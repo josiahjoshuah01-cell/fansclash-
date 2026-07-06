@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthHashHandler } from "@/components/auth-hash-handler";
 import { cn } from "@/lib/utils";
 
 import "./globals.css";
@@ -44,6 +45,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <AuthHashHandler />
           {children}
         </ThemeProvider>
       </body>

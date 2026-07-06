@@ -55,6 +55,10 @@ export function mapPasswordValidationError(): string {
 export function mapPasswordAuthError(message: string): string {
   const lower = message.toLowerCase();
 
+  if (lower.includes("email rate limit") || lower.includes("over_email_send_rate_limit")) {
+    return "Too many reset emails sent. Check your inbox and spam for an earlier link, then wait about an hour before requesting another.";
+  }
+
   if (lower.includes("invalid login credentials")) {
     return "Incorrect email or password. Tap Forgot password? on the sign-in page to reset it.";
   }
